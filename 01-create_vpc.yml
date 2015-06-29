@@ -1,0 +1,87 @@
+---
+- name: create vpc
+  hosts: localhost
+  gather_facts: False
+  vars_files:
+    - env/{{ env }}/group_vars/all
+
+  tasks:
+  - name: create a vpc
+    ec2_vpc:
+      state: present
+      internet_gateway: True
+      resource_tags:
+        Name: "{{ env }}"
+        env: "{{ env }}"
+      region: "{{ region }}"
+      cidr_block: 10.0.0.0/16
+      dns_hostnames: yes              # this doesn't seem to make any difference
+      dns_support: yes                # this doesn't seem to make any difference
+      wait: yes
+      subnets:
+        - cidr: 10.0.0.0/24
+          az: "{{ az1 }}"
+          assign_public_ip: True
+          resource_tags:
+            Name: "{{ env }}_db"
+            env: "{{ env }}"
+            tier: db
+          assign_public_ip: True      # these don't seem to matter either
+          dns_hostnames: yes          # these don't seem to matter either
+          dns_support: yes            # these don't seem to matter either
+        - cidr: 10.0.1.0/24
+          az: "{{ az1 }}"
+          resource_tags:
+            Name: "{{ env }}_web"
+            env: "{{ env }}"
+            tier: web
+          assign_public_ip: True
+          dns_hostnames: yes
+          dns_support: yes
+        - cidr: 10.0.2.0/24
+          az: "{{ az2 }}"
+          resource_tags:
+            Name: "{{ env }}_web"
+            env: "{{ env }}"
+            tier: web
+          assign_public_ip: True
+          dns_hostnames: yes
+          dns_support: yes
+        - cidr: 10.0.3.0/24
+          az: "{{ az3 }}"
+          resource_tags:
+            Name: "{{ env }}_web"
+            env: "{{ env }}"
+            tier: web
+          assign_public_ip: True
+          dns_hostnames: yes
+          dns_support: yes
+      route_tables:
+        - subnets:
+          - 10.0.0.0/24
+          - 10.0.1.0/24
+          - 10.0.2.0/24
+          - 10.0.3.0/24
+          routes:
+          - dest: 0.0.0.0/0
+            gw: igw
+    register: vpc
+
+  - name: print VPC details
+    debug: var=vpc
+
+  - set_fact: vpc_id={{ vpc.vpc_id }}
+  - set_fact: vpc_subnet_id={{ vpc.subnets[0].id }}
+
+  - name: Update vpc_id in the var file for this environment
+    lineinfile: "dest=env/{{ env }}/group_vars/all regexp='^vpc_id' insertafter='^#vpc_id' line='vpc_id: {{ vpc_id }}'"
+
+  - name: Update vpc_subnet_id in the var file for this environment
+    lineinfile: "dest=env/{{ env }}/group_vars/all regexp='^vpc_subnet_id' insertafter='^#vpc_subnet_id' line='vpc_subnet_id: {{ vpc_subnet_id }}'"
+
+  - name: Update subnets in the var file for this environment
+    lineinfile: "dest=env/{{ env }}/group_vars/all  regexp='^subnet_0' insertafter='^#subnet_0' line='subnet_0: {{ vpc.subnets[0].id }}'"
+
+  - lineinfile: "dest=env/{{ env }}/group_vars/all  regexp='^subnet_1' insertafter='^#subnet_1' line='subnet_1: {{ vpc.subnets[1].id }}'"
+  - lineinfile: "dest=env/{{ env }}/group_vars/all  regexp='^subnet_2' insertafter='^#subnet_2' line='subnet_2: {{ vpc.subnets[2].id }}'"
+  - lineinfile: "dest=env/{{ env }}/group_vars/all  regexp='^subnet_3' insertafter='^#subnet_3' line='subnet_3: {{ vpc.subnets[3].id }}'"

@@ -1,0 +1,46 @@
+---
+- name: Setup ELB for web tier
+  hosts: localhost
+  gather_facts: False
+  vars_files:
+    - env/{{ env }}/group_vars/all
+    - env/{{ env }}/group_vars/secrets.yml
+
+  tasks:
+    - name: get security ID list
+      shell: AWS_REGION={{ region }} scripts/get_group_ids.py nginx_{{ env }}
+      register: sg_id_list
+      changed_when: False
+
+    - name: set security_group_id_list fact
+      set_fact:
+        security_group_id_list: "{{ sg_id_list.stdout }}"
+
+    - local_action:
+       module: ec2_elb_lb
+       state: present
+       name: "{{ env }}-web-elb"          # letters and dashes only (no spaces!)
+       region: "{{ region }}"
+       subnets: "{{ web_tier_subnets }}"
+       connection_draining_timeout: 300
+       cross_az_load_balancing: True
+       scheme: internet-facing
+       purge_subnets: yes
+       security_group_ids: "{{ security_group_id_list }}"
+       listeners:
+         - protocol: http
+           load_balancer_port: 80
+           instance_port: 80
+         - protocol: https
+           load_balancer_port: 443
+           instance_protocol: http
+           instance_port: 80
+           ssl_certificate_id: "{{ ssl_certificate_id }}"
+       health_check:
+           ping_protocol: http
+           ping_port: 80
+           ping_path: "/index.html"
+           response_timeout: 5             # seconds (must be less than interval)
+           interval: 10                    # seconds (5 or greater)
+           unhealthy_threshold: 2
+           healthy_threshold: 10

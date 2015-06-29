@@ -1,0 +1,23 @@
+---
+- name: launch memcached instance
+  hosts: localhost
+  gather_facts: False
+  vars:
+    role: memcached
+    volume_size: 16
+    exact_count: "{{ memcached_count }}"
+  vars_files:
+    - env/{{ env }}/group_vars/all
+    - env/{{ env }}/group_vars/secrets.yml
+  roles:
+    - _launch_instance
+
+- name: configure memcached
+  hosts: memcached:&{{ env }}
+  sudo: True
+  vars_files:
+    - env/{{ env }}/group_vars/all
+    - env/{{ env }}/group_vars/secrets.yml
+  roles:
+    - _ntp
+    - memcached

@@ -1,0 +1,36 @@
+---
+- name: start the instance
+  ec2:
+    image: "{{ ubuntu_ami }}"
+    region: "{{ region }}"
+    vpc_subnet_id: "{{ vpc_subnet_id }}"
+    assign_public_ip: True
+    instance_type: "{{ instance_type }}"
+    key_name: "{{ ssh_key }}"
+    group:
+      - "{{ role }}_{{ env }}"
+      - ssh_{{ env }}
+      - outbound_{{ env }}
+    instance_tags:
+       Name: "{{ role }}_server"
+       type: "{{ role }}"
+       env: "{{ env }}"
+    exact_count: "{{ exact_count }}"
+    count_tag: { type: "{{ role }}", env: "{{ env }}" }
+    volumes:
+      - device_name: /dev/sda1            # root drive; don't bother with extra volumes
+        device_type: gp2                  # No mechanical HDs for us!
+        volume_size: "{{ volume_size }}"  # 8GB is just too small. Plus, a few more IOPS.
+        delete_on_termination: true
+    wait: yes
+  register: ec2
+
+- name: add the new instance to the role and env groups
+  add_host: hostname={{ item.public_dns_name }} groups={{ role }},{{ env }}
+  with_items: ec2.tagged_instances
+  when: item.public_dns_name is defined
+
+- name: wait for ssh server to be running
+  wait_for: host={{ item.public_dns_name }} port=22 search_regex=OpenSSH
+  with_items: ec2.tagged_instances
+  when: item.public_dns_name is defined

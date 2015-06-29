@@ -1,0 +1,7 @@
+.DS_Store
+aws_config
+aws_credentials
+id_rsa*
+vault-pw*
+env/**/files/*_id_rsa*
+env/**/files/nginx*

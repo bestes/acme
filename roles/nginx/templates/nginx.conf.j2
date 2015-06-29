@@ -1,0 +1,18 @@
+server {
+  listen 80 default_server;
+  listen [::]:80 default_server ipv6only=on;
+
+  listen 443 ssl;
+
+  root /usr/share/nginx/html;
+  index index.html index.htm;
+
+  server_name {{ nginx_server_name }};
+  ssl_certificate {{ nginx_cert_file }};
+  ssl_certificate_key {{ nginx_key_file }};
+  ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+
+  location / {
+    try_files $uri $uri/ =404;
+  }
+}

@@ -1,0 +1,82 @@
+---
+- name: set security groups
+  hosts: localhost
+  gather_facts: False
+
+  vars_files:
+    - env/{{ env }}/group_vars/all
+
+  tasks:
+    - name: nginx security group
+      ec2_group:
+        name: nginx_{{ env }}
+        description: allow http and https access from anywhere
+        region: "{{ region }}"
+        vpc_id: "{{ vpc_id }}"
+        rules:
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 443
+            to_port: 443
+            cidr_ip: 0.0.0.0/0
+        rules_egress:
+          - proto: all
+            cidr_ip: "0.0.0.0/0"
+
+    - name: postgres security group
+      ec2_group:
+        name: postgres_{{ env }}
+        description: allow postgres access only from within the VPC
+        region: "{{ region }}"
+        vpc_id: "{{ vpc_id }}"
+        rules:
+          - proto: tcp
+            from_port: 5432
+            to_port: 5432
+            cidr_ip: 10.0.0.0/16
+        rules_egress:
+          - proto: all
+            cidr_ip: "0.0.0.0/0"
+
+    - name: memcached security group
+      ec2_group:
+        name: memcached_{{ env }}
+        description: allow memcached access only from within the VPC
+        region: "{{ region }}"
+        vpc_id: "{{ vpc_id }}"
+        rules:
+          - proto: tcp
+            from_port: 11211
+            to_port: 11211
+            cidr_ip: 10.0.0.0/16
+        rules_egress:
+          - proto: all
+            cidr_ip: "0.0.0.0/0"
+
+    - name: ssh security group
+      ec2_group:
+        name: ssh_{{ env }}
+        description: allow ssh access from anywhere
+        region: "{{ region }}"
+        vpc_id: "{{ vpc_id }}"
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+        rules_egress:
+          - proto: all
+            cidr_ip: "0.0.0.0/0"
+
+    - name: outbound security group
+      ec2_group:
+        name: outbound_{{ env }}
+        description: allow all outbound connections to the internet
+        region: "{{ region }}"
+        vpc_id: "{{ vpc_id }}"
+        rules_egress:
+          - proto: all
+            cidr_ip: 0.0.0.0/0

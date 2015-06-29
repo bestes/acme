@@ -1,0 +1,23 @@
+---
+- name: launch postgres instance
+  hosts: localhost
+  gather_facts: False
+  vars:
+    role: postgres
+    volume_size: 32
+    exact_count: "{{ postgres_count }}"
+  vars_files:
+    - env/{{ env }}/group_vars/all
+    - env/{{ env }}/group_vars/secrets.yml
+  roles:
+    - _launch_instance
+
+- name: configure postgres
+  hosts: postgres:&{{ env }}
+  sudo: True
+  vars_files:
+    - env/{{ env }}/group_vars/all
+    - env/{{ env }}/group_vars/secrets.yml
+  roles:
+    - _ntp
+    - postgres

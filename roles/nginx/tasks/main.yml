@@ -1,0 +1,29 @@
+---
+- name: Install nginx
+  apt: name=nginx update_cache=yes cache_valid_time=3600
+
+- name: create directorie for ssl certificates
+  file: path=/etc/nginx/ssl state=directory
+
+- set_fact: local_cert_dir=env/{{ env }}/files
+
+- name: copy TLS key
+  copy: src={{ local_cert_dir }}/nginx.key dest={{ nginx_key_file }} owner=root mode=0600
+  notify: restart nginx
+
+- name: copy TLS certificate
+  copy: src={{ local_cert_dir }}/nginx.crt dest={{ nginx_cert_file }}
+  notify: restart nginx
+
+- name: copy nginx config file
+  template: src=nginx.conf.j2 dest={{ nginx_conf_file }}
+  notify: restart nginx
+
+- name: enable configuration
+  file: dest=/etc/nginx/sites-enabled/default src={{ nginx_conf_file }} state=link
+  notify: restart nginx
+
+- name: copy index.html
+  template: src=index.html.j2
+            dest={{ nginx_webroot }}/index.html
+            mode=0644

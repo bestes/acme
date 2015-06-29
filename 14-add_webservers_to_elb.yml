@@ -1,0 +1,16 @@
+---
+- name: Add webservers to the ELB
+  hosts: tag_type_nginx:&tag_env_{{ env }}
+  gather_facts: False
+  vars_files:
+    - env/{{ env }}/group_vars/all
+    - env/{{ env }}/group_vars/secrets.yml
+
+  tasks:
+    - name: Instance Register
+      local_action:
+        module: ec2_elb
+        instance_id: "{{ ec2_id }}"
+        ec2_elbs: "{{ env }}-web-elb"
+        region: "{{ region }}"
+        state: present

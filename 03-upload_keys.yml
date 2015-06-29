@@ -1,0 +1,19 @@
+---
+- name: upload SSH key to use in ec2
+  hosts: localhost
+  gather_facts: False
+  vars_files:
+    - env/{{ env }}/group_vars/all
+
+  tasks:
+    - set_fact: keyfile={{ env }}_id_rsa
+    - set_fact: keypath=env/{{ env }}/files/{{ keyfile }}
+
+    - name: ensure keypair exists for this environment
+      shell: ssh-keygen -q -t rsa -P '' -f {{ keypath }}
+      args:
+        creates: "{{ keypath }}.pub"
+
+    - name: upload ec2 keypair
+      ec2_key: name={{ env }}_key key_material="{{ item }}" region={{ region }}
+      with_file: "{{ keypath }}.pub"

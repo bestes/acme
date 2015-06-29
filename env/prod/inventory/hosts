@@ -1,0 +1,11 @@
+localhost ansible_connection=local
+
+[web:children]
+tag_type_web
+
+[tag_type_web]
+
+[nginx:children]
+tag_type_nginx
+
+[tag_type_nginx]

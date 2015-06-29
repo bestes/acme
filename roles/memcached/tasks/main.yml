@@ -1,0 +1,12 @@
+---
+- name: Install memcached
+  apt: name=memcached update_cache=yes cache_valid_time=3600
+
+# This assumes the machine is dedicated to memcached
+- set_fact: memcached_max_memory={{ (ansible_memtotal_mb * 0.75)|round|int }}
+
+- name: copy over memcached.conf template
+  template: src=memcached.conf.j2
+            dest=/etc/memcached.conf
+            mode=0644
+  notify: restart memcached

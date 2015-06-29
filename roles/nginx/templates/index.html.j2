@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <title>Welcome to Ansible</title>
+  </head>
+  <body>
+    <h1>nginx, configured by Ansible</h1>
+    <p>If you can see this, Ansible successfully installed nginx.</p>
+
+    <h3>Connected Resources</h3>
+    <p>Even though this website doesn't actually do anything, it needs to be
+       aware of companion resources. Note we are showing the internal, private
+       IP addresses of these resources</p>
+
+        <h4>memcached</h4>
+        <ul>
+           {% for host in groups['memcached'] %}
+              <li>{{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}</li>
+           {% endfor %}
+        </ul>
+        <h4>postgres</h4>
+        <ul>
+           {% for host in groups['postgres'] %}
+              <li>{{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}</li>
+           {% endfor %}
+        </ul>
+
+    <h3>This page</h3>
+    <p>{{ ansible_managed }}</p>
+  </body>
+</html>

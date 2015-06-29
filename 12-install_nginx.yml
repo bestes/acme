@@ -1,0 +1,24 @@
+---
+- name: launch nginx instance
+  hosts: localhost
+  gather_facts: False
+  vars:
+    role: nginx
+    volume_size: 16
+    exact_count: "{{ nginx_count }}"
+  vars_files:
+    - env/{{ env }}/group_vars/all
+    - env/{{ env }}/group_vars/secrets.yml
+  roles:
+    - _launch_instance
+
+- name: configure nginx
+  hosts: nginx:&{{ env }}
+  sudo: True
+  vars_files:
+    - env/{{ env }}/group_vars/all
+    - env/{{ env }}/group_vars/secrets.yml
+  roles:
+    - _papertrail
+    - _ntp
+    - nginx

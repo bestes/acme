@@ -1,0 +1,6 @@
+---
+nginx_key_file: /etc/nginx/ssl/nginx.key
+nginx_cert_file: /etc/nginx/ssl/nginx.crt
+nginx_conf_file: /etc/nginx/sites-available/default
+nginx_server_name: localhost
+nginx_webroot: /usr/share/nginx/html

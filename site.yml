@@ -1,0 +1,18 @@
+---
+- name: run everything
+  hosts: localhost
+  gather_facts: False
+  vars_files:
+    - env/{{ env }}/group_vars/all
+    - env/{{ env }}/group_vars/secrets.yml
+
+- include: 01-create_vpc.yml
+- include: 02-set_security_groups.yml
+- include: 03-upload_keys.yml
+- include: 04-upload_tls_cert.yml
+- include: 05-get_ami.yml
+- include: 10-install_memcached.yml
+- include: 11-install_postgres.yml
+- include: 12-install_nginx.yml
+- include: 13-create_web_elb.yml
+- include: 14-add_webservers_to_elb.yml

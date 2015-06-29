@@ -1,0 +1,6 @@
+---
+postgres_username: postgres
+# postgres_password is in secrets.yml
+postgres_db_name: testdb
+postgres_port: 5432
+postgres_locale: en_US.UTF-8

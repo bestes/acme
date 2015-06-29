@@ -1,0 +1,49 @@
+---
+# Environment
+env: prod                     # Should always be redundant
+
+
+# VPC
+region: us-west-2
+az1: "{{ region }}a"          # Used to create the VPC subnets
+az2: "{{ region }}b"
+az3: "{{ region }}c"
+
+# Role 01-create-vpc will populate these
+vpc_id:
+vpc_subnet_id:
+
+subnet_0:
+subnet_1:
+subnet_2:
+subnet_3:
+
+db_tier_subnets:
+  - "{{ subnet_0 }}"
+
+web_tier_subnets:
+  - "{{ subnet_1 }}"
+  - "{{ subnet_2 }}"
+  - "{{ subnet_3 }}"
+
+
+# Role 05-get-ami will populate this
+ubuntu_ami:
+
+
+# Essential info
+instance_type: t2.micro
+ssh_key: "{{ env }}_key"
+locale: en_US.UTF-8
+
+
+nginx_count: 3
+postgres_count: 1
+memcached_count: 1
+
+
+# Roles
+
+# nginx & ELB
+# Role 04-upload_tls_cert will populate this
+ssl_certificate_id:

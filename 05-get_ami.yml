@@ -1,0 +1,16 @@
+---
+- name: get ami
+  hosts: localhost
+  gather_facts: False
+  vars_files:
+    - env/{{ env }}/group_vars/all
+
+  tasks:
+    - name: Get the latest Ubuntu Trusty (14.04) AMI ID
+      ec2_ami_search: distro=ubuntu release=trusty virt=hvm region={{ region }}
+      register: ubuntu_image
+
+    - set_fact: ubuntu_ami={{ ubuntu_image.ami }}
+
+    - name: Update ubuntu_ami in the var file for this environment
+      lineinfile: "dest=env/{{ env }}/group_vars/all regexp='^ubuntu_ami' insertafter='^#ubuntu_ami' line='ubuntu_ami: {{ ubuntu_ami }}'"

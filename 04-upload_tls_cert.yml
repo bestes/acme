@@ -1,0 +1,49 @@
+---
+- name: upload SSH key to use in ec2
+  hosts: localhost
+  gather_facts: False
+  vars_files:
+    - env/{{ env }}/group_vars/all
+
+  # Neither boto or the ansible ec2 module can upload certs, but awscli can.
+  # This misses the case where the cert has changed, but keeps the same name
+  # This is nginx specific
+  #
+  # I didn't see a way to delete a cert on AWS console
+  # aws iam delete-server-certificate --server-certificate-name dev-cert
+
+  tasks:
+    - set_fact: local_cert_dir=env/{{ env }}/files
+
+    - name: ensure TLS certificate exists for this environment
+      shell: openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -subj /CN=localhost \
+             -keyout "{{ local_cert_dir }}/nginx.key" -out {{ local_cert_dir }}/nginx.crt
+      args:
+        creates: "{{ local_cert_dir }}/nginx.key"
+
+    - name: check the list of TLS certs at AWS
+      shell: aws iam list-server-certificates | jq '.ServerCertificateMetadataList[].ServerCertificateName' | grep -c dev-cert
+      ignore_errors: True
+      register: uploaded_certs
+      changed_when: False
+
+    - name: upload cert to AWS
+      shell: aws iam upload-server-certificate
+             --server-certificate-name {{ env }}-cert
+             --certificate-body file://{{ local_cert_dir }}/nginx.crt
+             --private-key file://{{ local_cert_dir }}/nginx.key
+      register: cert_upload_output
+      when: uploaded_certs.stdout != "1"
+
+    - name: get the arn of the TLS cert from AWS
+      shell: aws iam list-server-certificates | jq '.ServerCertificateMetadataList[].Arn'
+      ignore_errors: True
+      register: cert_list
+      when: uploaded_certs.stdout != "1"
+
+    - set_fact: ssl_certificate_id=cert_list.stdout
+      when: uploaded_certs.stdout != "1"
+
+    - name: Update ssl_certificate_id in the var file for this environment
+      lineinfile: "dest=env/{{ env }}/group_vars/all regexp='^ssl_certificate_id' insertafter='^#ssl_certificate_id' line='ssl_certificate_id: {{ cert_list.stdout }}'"
+      when: uploaded_certs.stdout != "1"
