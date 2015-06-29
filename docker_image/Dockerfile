@@ -60,7 +60,7 @@ RUN mkdir /root/.ssh            && \
 
 VOLUME /root/conf
 
-RUN git clone git@github.com:bestes/acme.git /root/acme
+RUN git clone https://github.com/bestes/acme.git /root/acme
 
 COPY setup.sh /root/
 WORKDIR /root
