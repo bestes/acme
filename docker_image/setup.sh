@@ -1,7 +1,19 @@
 #!/bin/bash
 
 
-# Setup to run the ACME example Ansible project in the "dev" environment
+# Setup to run the ACME example Ansible project
+
+# By default, it is set for the "dev" environment. If you want to use another,
+# like "prod", you can pass it in on the command line:
+#
+#    ./setup.sh prod
+#
+# To actually make a new environment, create the directory first:
+#
+# 1. cp -R env/dev env/new_env      (from a clean version of dev, unused)
+# 2. edit env/new_env/group_vars/all and set "env: new_env"
+# 3. If you want new SSH keys created, remove the id_rsa files from ~/.ssh/
+# 4. /root/setup.sh new_env
 
 
 # Can't set these on the shebang line when Docker invokes the script.
@@ -10,13 +22,13 @@ set -e
 set -o pipefail
 
 
+ANSIBLE_ENV=${1:-dev}
+
 # Capture any existing ENV vars we care about
 AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
 AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
 AWS_REGION=${AWS_REGION:-}
 VAULT_PW=${VAULT_PW:-}
-
-ANSIBLE_ENV=${ANSIBLE_ENV:-dev}
 
 
 # Check to see we're running in the Docker image
@@ -29,7 +41,7 @@ if [ ! -f /root/setup.sh ] &&
 fi
 
 
-# Make sure acme is up-to-date
+echo "Ensure the acme repo is up-to-date"
 cd /root/acme
 git pull
 

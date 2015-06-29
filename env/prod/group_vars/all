@@ -32,7 +32,7 @@ ubuntu_ami:
 
 
 # Essential info
-instance_type: t2.micro
+instance_type: t2.small
 ssh_key: "{{ env }}_key"
 locale: en_US.UTF-8
 

@@ -188,8 +188,16 @@ Unfortunately, I will have to leave the secure storage or credentials as an
 exercise for the reader.
 
 
+Troubleshooting
+---------------
 
+The cloud doesn't always work. This is not something that occasionally happens
+or might happen, it does happen and on a regular basis. This is why it is so
+import to make the configuration idempotent, so you can just run it again.
 
+The TLS certificate upload seems a bit brittle. If there is a problem, try
+deleting the certificate on AWS and running the upload\_tls\_cert task again.
+Make sure to replace "dev" with whatever environment you are using.
 
-
+    aws iam delete-server-certificate --server-certificate-name dev-cert
 

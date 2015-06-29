@@ -22,7 +22,7 @@
         creates: "{{ local_cert_dir }}/nginx.key"
 
     - name: check the list of TLS certs at AWS
-      shell: aws iam list-server-certificates | jq '.ServerCertificateMetadataList[].ServerCertificateName' | grep -c dev-cert
+      shell: aws iam list-server-certificates | jq '.ServerCertificateMetadataList[].ServerCertificateName' | grep -c {{ env }}-cert
       ignore_errors: True
       register: uploaded_certs
       changed_when: False
@@ -36,7 +36,7 @@
       when: uploaded_certs.stdout != "1"
 
     - name: get the arn of the TLS cert from AWS
-      shell: aws iam list-server-certificates | jq '.ServerCertificateMetadataList[].Arn'
+      shell: aws iam list-server-certificates | jq '.ServerCertificateMetadataList[].Arn' | grep {{ env }}-cert
       ignore_errors: True
       register: cert_list
       when: uploaded_certs.stdout != "1"
