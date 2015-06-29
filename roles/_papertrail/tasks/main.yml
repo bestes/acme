@@ -6,15 +6,15 @@
   sudo: True
   with_items:
     - rsyslog-gnutls
-  notify: reload rsyslogd
+  notify: restart rsyslogd
 
 - name: copy TLS certificate bundle
   copy: src=papertrail-bundle.pem dest=/etc/ mode=0644 owner=syslog
-  notify: reload rsyslogd
+  notify: restart rsyslogd
 
 - name: copy papertrail config file
   template: src=90-papertrail.conf.j2 dest=/etc/rsyslog.d/90-papertrail.conf
-  notify: reload rsyslogd
+  notify: restart rsyslogd
 
 - name: ensure rsyslogd is running
   service: name=rsyslog state=started
